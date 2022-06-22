@@ -33,6 +33,8 @@ const SUBSCRIPTIONS = {};
  *                                          to apply the widget
  * @param {function():boolean} [options.unless] a function use to define when
  *                                              to not apply the widget
+ * @param {function():boolean} [options.once] a function use to define if the widget
+ *                                              could be triggered more than once
  * @param {Object|function} [options.media] a media condition to apply
  *                                          to the widget
  * @param {Object|function} [options.media.min] the minimum screen width
@@ -50,6 +52,7 @@ export default function widgets(name, selector, options = {}, block) {
   // extracted from the options object.
   const ifCond = options.if;
   const unlessCond = options.unless;
+  const once = typeof options.once !== 'undefined' ? options.once : true;
   const targetFrame = options.targetFrame;
   const handledClass = `${name}-handled`;
   let events = options.on || 'init';
@@ -59,6 +62,7 @@ export default function widgets(name, selector, options = {}, block) {
   delete options.on;
   delete options.if;
   delete options.unless;
+  delete options.once;
   delete options.media;
   delete options.targetFrame;
 
@@ -92,7 +96,7 @@ export default function widgets(name, selector, options = {}, block) {
   // are passed in the options object they will be tested as both part
   // of a single `&&` condition.
   function canBeHandled(element, widget) {
-    let res = !widgets.hasBeenHandled(element, widget);
+    let res = !widgets.hasBeenHandled(element, widget) || !once;
     res = ifCond ? res && testCondition(ifCond, element) : res;
     res = unlessCond ? res && !testCondition(unlessCond, element) : res;
     return res;
